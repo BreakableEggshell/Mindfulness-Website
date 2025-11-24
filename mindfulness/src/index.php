@@ -106,7 +106,7 @@ if (isset($_SESSION['user_id'])) {
             <p class="hero-text">
                 Build better routines, improve your emotional health, and track your daily mindfulness progress.
             </p>
-            <div class ="mascot"><img src ="test.png"></div> 
+            <img src ="test.png">
             <a href="register.php" class="btn-dark-purple me-3">Get Started</a>
 
         </div>
