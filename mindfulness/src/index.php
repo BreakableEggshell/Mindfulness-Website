@@ -99,7 +99,7 @@ if (isset($_SESSION['user_id'])) {
 <!-- MAIN LAYOUT -->
 <div class="container-fluid mt-5">
     <div class="row align-items-center">
-        <img src ="Test.png">
+        <img src ="mindfulness\assets\Test.png">
         <!-- LEFT SIDE -->
         <div class="col-md-6 hero-left">
             <h1 class="hero-title">Fuel wellness through mindful habits</h1>
