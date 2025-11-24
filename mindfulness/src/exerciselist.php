@@ -9,6 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
+// Fetch user info
 $stmt = $mysqli->prepare("
     SELECT u.full_name, u.username, r.role_name
     FROM users u
@@ -18,14 +19,21 @@ $stmt = $mysqli->prepare("
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
-
 $role = $user['role_name'] ?? "User";
+
+// Fetch all exercises (schedule removed)
+$sql = "
+    SELECT a.activity_id, a.activity_name, a.duration_text, s.sub_task_name
+    FROM activities a
+    LEFT JOIN sub_tasks s ON a.sub_task_id = s.sub_task_id
+";
+$result = $mysqli->query($sql);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - Mindfulness Wellness App</title>
+    <title>Exercises - Mindfulness Wellness App</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <style>
         body {
@@ -91,6 +99,47 @@ $role = $user['role_name'] ?? "User";
 <div class="container py-3">
     <div class="card p-4 shadow-sm">
         <h3 class="mb-3">Welcome back, <?= htmlspecialchars($user['full_name'] ?: $user['username']) ?> </h3>
+        <h5 class="mb-3">List of Exercises</h5>
+
+        <p>(This button VVVVVV is for testing purposes. This adds an admin user and 3 exercises that are 'created'
+            by that admin user in case if exercises doesn't exist in the database yet)</p>
+
+        <!-- REMOVE LATER. THIS IS FOR TESTING -->
+        <div class="mb-3">
+            <form action="addexercise.php" method="post">
+                <button type="submit" class="btn btn-primary">
+                    Generate Sample Exercises
+                </button>
+            </form>
+        </div>
+        <!-- REMOVE LATER. THIS IS FOR TESTING -->
+
+        <hr>
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Exercise Name</th>
+                    <th>Sub-Task</th>
+                    <th>Duration</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($result && $result->num_rows > 0): ?>
+                    <?php while ($row = $result->fetch_assoc()): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($row['activity_name']) ?></td>
+                            <td><?= htmlspecialchars($row['sub_task_name']) ?></td>
+                            <td><?= htmlspecialchars($row['duration_text']) ?></td>
+                        </tr>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="3" class="text-center text-muted">No exercises available</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
 </div>
 

@@ -13,7 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $error = "Please enter both username and password.";
     } else {
 
-        $stmt = $mysqli->prepare("SELECT user_id, username, password_hash FROM users WHERE username = ? LIMIT 1");
+        $stmt = $mysqli->prepare("SELECT u.user_id, u.username, u.password_hash, u.role_id, r.role_name FROM users u LEFT JOIN user_roles r ON u.role_id = r.role_id WHERE u.username = ? LIMIT 1");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -25,6 +25,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 $_SESSION['user_id'] = $user['user_id'];
                 $_SESSION['username'] = $user['username'];
+                $_SESSION['role_id'] = isset($user['role_id']) ? (int)$user['role_id'] : 0;
+                $_SESSION['role_name'] = isset($user['role_name']) ? $user['role_name'] : '';
+
+                error_log(sprintf("[login] user_id=%d username=%s role_id=%d role_name=%s", $user['user_id'], $user['username'], $_SESSION['role_id'], $_SESSION['role_name']));
+
+                if (strcasecmp($_SESSION['role_name'], 'Admin') === 0) {
+                    header("Location: ../admin/admindashboard.php");
+                    exit;
+                }
 
                 header("Location: dashboard.php");
                 exit;
