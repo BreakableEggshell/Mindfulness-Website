@@ -99,14 +99,14 @@ if (isset($_SESSION['user_id'])) {
 <!-- MAIN LAYOUT -->
 <div class="container-fluid mt-5">
     <div class="row align-items-center">
-
+        <img src ="test.png">
         <!-- LEFT SIDE -->
         <div class="col-md-6 hero-left">
             <h1 class="hero-title">Fuel wellness through mindful habits</h1>
             <p class="hero-text">
                 Build better routines, improve your emotional health, and track your daily mindfulness progress.
             </p>
-            <img src ="test.png">
+            
             <a href="register.php" class="btn-dark-purple me-3">Get Started</a>
 
         </div>
