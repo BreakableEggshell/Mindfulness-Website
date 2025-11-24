@@ -104,7 +104,7 @@ if (isset($_SESSION['user_id'])) {
         <div class="col-md-6 hero-left">
             <h1 class="hero-title">Fuel wellness through mindful habits</h1>
             <p class="hero-text">
-                Build better routines, improve your emotional health, and track your daily mindfulness progress.
+                Build better, improve your emotional health, and track your daily mindfulness progress.
             </p>
 
             <a href="register.php" class="btn-dark-purple me-3">Get Started</a>
