@@ -30,7 +30,6 @@ if (isset($db) && $db !== '') {
     define('DB_NAME', 'mindfulness');
 }
 
-
 class Database {
     private $mysqli;
 
@@ -38,7 +37,7 @@ class Database {
         $this->mysqli = new mysqli($host, $user, $pass, $dbName);
         
         if ($this->mysqli->connect_error) {
-            throw new Exception("Database connection failed: " . $this->mysqli->connect_error);
+            die("Database connection failed: " . $this->mysqli->connect_error);
         }
     }
 
@@ -59,83 +58,110 @@ class AuthManager {
             header("Location: $redirectPath");
             exit;
         }
-        return $_SESSION['user_id'];
     }
 
-    public function getUserDetails(int $user_id) {
-        $stmt = $this->db->prepare("SELECT full_name, username, email FROM users WHERE user_id = ?");
+    public function getCurrentUser() {
+        if (!isset($_SESSION['user_id'])) {
+            return null;
+        }
+
+        $user_id = $_SESSION['user_id'];
+        
+        $sql = "SELECT u.full_name, u.username, r.role_name
+                FROM users u
+                LEFT JOIN user_roles r ON u.role_id = r.role_id
+                WHERE u.user_id = ?";
+        
+        $stmt = $this->db->prepare($sql);
+        
+        if ($stmt === false) {
+             return null;
+        }
+
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $user = $stmt->get_result()->fetch_assoc();
         $stmt->close();
+
         return $user;
     }
 
-    public function changePassword(int $user_id, string $current, string $new, string $confirm) : string {
+    public function requireRole($requiredRole = 'Admin', $redirectPath = '../src/dashboard.php') {
+        $user = $this->getCurrentUser();
         
-        $stmt = $this->db->prepare("SELECT password_hash FROM users WHERE user_id = ?");
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        $result = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
+        $currentRole = $user['role_name'] ?? 'User';
 
-        if (!$result) {
-            return 'User not found.';
+        if ($currentRole !== $requiredRole) {
+            header("Location: $redirectPath");
+            exit;
         }
-
-        if (!password_verify($current, $result['password_hash'])) {
-            return 'Current password is incorrect.';
-        }
-
-        if ($new !== $confirm) {
-            return 'New password and confirm password do not match.';
-        }
-        
-        $hashed_password = password_hash($new, PASSWORD_DEFAULT);
-        $stmt = $this->db->prepare("UPDATE users SET password_hash = ? WHERE user_id = ?");
-        $stmt->bind_param("si", $hashed_password, $user_id);
-        $stmt->execute();
-        $stmt->close();
-        
-        return 'Password updated successfully.';
+        return $user;
     }
 }
 
-class SettingsView {
+class AdminView {
     private $user;
-    private $message;
 
-    public function __construct(array $user, string $message = '') {
+    public function __construct($user) {
         $this->user = $user;
-        $this->message = $message;
     }
 
     public function render() {
-        $fullName = htmlspecialchars($this->user['full_name']);
-        $email = htmlspecialchars($this->user['email']);
-        $messageHtml = $this->message ? "<div class=\"alert alert-info\">" . htmlspecialchars($this->message) . "</div>" : '';
+        $fullName = htmlspecialchars($this->user['full_name'] ?: $this->user['username']);
         
         echo <<<HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Settings - Mindfulness Wellness App</title>
+    <title>Admin Dashboard - Mindfulness Wellness App</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <style>
-        body { background-color: #FFE9D6; font-family: 'Segoe UI', sans-serif; }
-        .header { background: white; padding: 15px 30px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-        .navbar-nav .nav-link { font-weight: 600; color: #333 !important; margin-left: 15px; }
-        .card { background-color: #FFF4EC; border: 1px solid #FFCCB0; }
-        h3, h5 { color: #D47456; }
-        .text-muted { color: #B67356 !important; }
-        .form-label { font-weight: 500; }
+        body {
+            background-color: #FFE9D6;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .header {
+            background: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .navbar-nav .nav-link {
+            font-weight: 600;
+            color: #333 !important;
+            margin-left: 15px;
+        }
+        .card {
+            background-color: #FFF4EC;
+            border: 1px solid #FFCCB0;
+        }
+        h3, h5 {
+            color: #D47456;
+        }
+        .table thead {
+            background-color: #FFD6BD;
+            color: #8A3F27;
+        }
+        .btn-outline-danger {
+            border-color: #E67A59;
+            color: #E67A59;
+        }
+        .btn-outline-danger:hover {
+            background-color: #E67A59;
+            color: white;
+        }
+        .table-striped > tbody > tr:nth-of-type(odd) {
+            background-color: #FFF0E6 !important;
+        }
+        .text-muted {
+            color: #B67356 !important;
+        }
     </style>
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-light header">
-    <a class="navbar-brand fw-bold" href="admindashboard.php">Mindfulness Admin</a>
+    <a class="navbar-brand fw-bold" href="#">Mindfulness Admin</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
     </button>
@@ -148,34 +174,9 @@ class SettingsView {
     </div>
 </nav>
 
-<div class="container py-4">
-    <div class="card p-4 shadow-sm mx-auto" style="max-width: 500px;">
-        <h3 class="mb-4">Settings</h3>
-
-        <p><strong>Name:</strong> {$fullName}</p>
-        <p><strong>Email:</strong> {$email}</p>
-
-        {$messageHtml}
-
-        <form method="POST">
-            <div class="mb-3">
-                <label for="current_password" class="form-label">Current Password</label>
-                <input type="password" class="form-control" id="current_password" name="current_password" required>
-            </div>
-            <div class="mb-3">
-                <label for="new_password" class="form-label">New Password</label>
-                <input type="password" class="form-control" id="new_password" name="new_password" required>
-            </div>
-            <div class="mb-3">
-                <label for="confirm_password" class="form-label">Confirm New Password</label>
-                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Change Password</button>
-        </form>
-
-        <div class="mt-3">
-            <a href="forgot_password.php" class="text-decoration-none">Forgot Password?</a>
-        </div>
+<div class="container py-3">
+    <div class="card p-4 shadow-sm">
+        <h3 class="mb-3">Welcome Admin {$fullName}</h3>
     </div>
 </div>
 
@@ -190,21 +191,12 @@ try {
     $db = new Database(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     
     $auth = new AuthManager($db);
-    $message = '';
     
-    $user_id = $auth->requireLogin();
+    $auth->requireLogin();
+    
+    $admin_user = $auth->requireRole('Admin');
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $current_password = $_POST['current_password'] ?? '';
-        $new_password = $_POST['new_password'] ?? '';
-        $confirm_password = $_POST['confirm_password'] ?? '';
-        
-        $message = $auth->changePassword($user_id, $current_password, $new_password, $confirm_password);
-    }
-
-    $user = $auth->getUserDetails($user_id);
-
-    $view = new SettingsView($user, $message);
+    $view = new AdminView($admin_user);
     $view->render();
 
 } catch (Exception $e) {
