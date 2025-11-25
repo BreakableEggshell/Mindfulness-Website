@@ -100,20 +100,15 @@ $result = $mysqli->query($sql);
     <div class="card p-4 shadow-sm">
         <h3 class="mb-3">Welcome back, <?= htmlspecialchars($user['full_name'] ?: $user['username']) ?> </h3>
         <h5 class="mb-3">List of Exercises</h5>
-
-        <p>(This button VVVVVV is for testing purposes. This adds an admin user and 3 exercises that are 'created'
-            by that admin user in case if exercises doesn't exist in the database yet)</p>
-
-        <!-- REMOVE LATER. THIS IS FOR TESTING -->
-        <div class="mb-3">
-            <form action="addexercise.php" method="post">
-                <button type="submit" class="btn btn-primary">
-                    Generate Sample Exercises
-                </button>
-            </form>
+        
+        <?php if ($role === 'Admin'): ?>
+        <div class="d-flex justify-content-end mb-3">
+            <a href="addexercise.php" class="btn btn-success">
+                + Add New Exercise
+            </a>
         </div>
-        <!-- REMOVE LATER. THIS IS FOR TESTING -->
-
+        <?php endif; ?>
+        
         <hr>
 
         <table class="table table-striped">
