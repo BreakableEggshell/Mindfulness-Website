@@ -168,6 +168,7 @@ class AdminView {
     <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
         <ul class="navbar-nav">
             <li class="nav-item"><a class="nav-link" href="editusers.php">Edit Users</a></li>
+            <li class="nav-item"><a class="nav-link" href="addexercise.php">Add New Exercise</a></li>
             <li class="nav-item"><a class="nav-link" href="setting.php">Settings</a></li>
             <li class="nav-item"><a class="nav-link" href="../src/logout.php">Logout</a></li>
         </ul>
