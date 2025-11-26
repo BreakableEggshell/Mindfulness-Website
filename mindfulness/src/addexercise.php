@@ -79,13 +79,41 @@ foreach ($activities as $act) {
     $stmt->execute();
     $result = $stmt->get_result();
 
-    if ($result->num_rows === 0) {
-        // Insert activity
+    $activity_id = null;
+
+    if ($result->num_rows > 0) {
+        // Activity already exists
+        $row = $result->fetch_assoc();
+        $activity_id = $row['activity_id'];
+    } else {
+        // Insert new activity
         $stmt = $mysqli->prepare("
             INSERT INTO activities (user_id, sub_task_id, activity_name, schedule_datetime, duration_text, created_by)
             VALUES (?, ?, ?, NOW(), '15 mins', ?)
         ");
         $stmt->bind_param("iisi", $admin_id, $sub_id, $act['activity_name'], $admin_id);
+        $stmt->execute();
+
+        $activity_id = $mysqli->insert_id;
+    }
+
+    // --- Create activity_progress entry ---
+    // Check if activity_progress exists
+    $stmt = $mysqli->prepare("
+        SELECT progress_id FROM activity_progress 
+        WHERE activity_id=? AND sub_task_id=?
+    ");
+    $stmt->bind_param("ii", $activity_id, $sub_id);
+    $stmt->execute();
+    $progress_result = $stmt->get_result();
+
+    if ($progress_result->num_rows === 0) {
+        // Insert activity_progress
+        $stmt = $mysqli->prepare("
+            INSERT INTO activity_progress (activity_id, sub_task_id, is_completed, progress_notes, updated_at)
+            VALUES (?, ?, 0, NULL, NOW())
+        ");
+        $stmt->bind_param("ii", $activity_id, $sub_id);
         $stmt->execute();
     }
 }
@@ -93,3 +121,4 @@ foreach ($activities as $act) {
 // Redirect back to exerciselist.php
 header("Location: exerciselist.php");
 exit;
+?>
