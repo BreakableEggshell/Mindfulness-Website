@@ -22,10 +22,19 @@ $user = $stmt->get_result()->fetch_assoc();
 $role = $user['role_name'] ?? "User";
 
 // Fetch all exercises (schedule removed)
+// NOW includes activity_progress column for finished checkmark
 $sql = "
-    SELECT a.activity_id, a.activity_name, a.duration_text, s.sub_task_name
+    SELECT 
+        a.activity_id,
+        a.activity_name,
+        a.duration_text,
+        s.sub_task_name,
+        COALESCE(p.is_done, 0) AS is_completed
     FROM activities a
     LEFT JOIN sub_tasks s ON a.sub_task_id = s.sub_task_id
+    LEFT JOIN activity_progress p 
+        ON p.activity_id = a.activity_id 
+        AND p.user_id = $user_id
 ";
 $result = $mysqli->query($sql);
 ?>
@@ -101,8 +110,8 @@ $result = $mysqli->query($sql);
         <h3 class="mb-3">Welcome back, <?= htmlspecialchars($user['full_name'] ?: $user['username']) ?> </h3>
         <h5 class="mb-3">List of Exercises</h5>
 
-        <p>(This button VVVVVV is for testing purposes. This adds an admin user and 3 exercises that are 'created'
-            by that admin user in case if exercises doesn't exist in the database yet)</p>
+        <p>(This button VVVVVV is for testing purposes. This adds an admin user and 3 exercises
+            that are 'created' by that admin user in case if exercises doesn't exist in the database yet)</p>
 
         <!-- REMOVE LATER. THIS IS FOR TESTING -->
         <div class="mb-3">
@@ -116,33 +125,79 @@ $result = $mysqli->query($sql);
 
         <hr>
 
+        <!-- Exercises table -->
         <table class="table table-striped">
             <thead>
                 <tr>
                     <th>Exercise Name</th>
                     <th>Sub-Task</th>
                     <th>Duration</th>
+                    <th>Done</th> <!-- New column -->
                 </tr>
             </thead>
             <tbody>
                 <?php if ($result && $result->num_rows > 0): ?>
                     <?php while ($row = $result->fetch_assoc()): ?>
+                        <?php
+                            // Fetch progress for this user/activity
+                            $stmt = $mysqli->prepare("
+                                SELECT is_done FROM activity_progress 
+                                WHERE user_id = ? AND activity_id = ?
+                            ");
+                            $stmt->bind_param("ii", $user_id, $row['activity_id']);
+                            $stmt->execute();
+                            $res = $stmt->get_result();
+                            $progress = $res->fetch_assoc();
+                            $is_done = $progress['is_done'] ?? 0;
+                        ?>
                         <tr>
                             <td><?= htmlspecialchars($row['activity_name']) ?></td>
                             <td><?= htmlspecialchars($row['sub_task_name']) ?></td>
                             <td><?= htmlspecialchars($row['duration_text']) ?></td>
+                            <td>
+                                <input type="checkbox" 
+                                    class="mark-done" 
+                                    data-activity="<?= $row['activity_id'] ?>" 
+                                    <?= $is_done ? 'checked' : '' ?>>
+                            </td>
                         </tr>
                     <?php endwhile; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="3" class="text-center text-muted">No exercises available</td>
+                        <td colspan="4" class="text-center text-muted">No exercises available</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
         </table>
+
+
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.mark-done').forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            const activityId = this.dataset.activity;
+            const isDone = this.checked ? 1 : 0;
+
+            fetch('update_progress.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `activity_id=${activityId}&is_done=${isDone}`
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log('Progress updated:', data);
+            })
+            .catch(err => {
+                alert('Error updating progress.');
+                console.error(err);
+            });
+        });
+    });
+});
+</script>
 </body>
 </html>
