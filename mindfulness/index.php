@@ -89,7 +89,7 @@ if (isset($_SESSION['user_id'])) {
 
 <!-- HEADER -->
 <div class="header">
-    <h4 class="m-0">Penis</h4>
+    <h4 class="m-0">Mindfulness</h4>
     <div>
         <a href="src/login.php" class="btn-login">Login</a>
         <a href="src/register.php" class="ms-3">Register</a>
