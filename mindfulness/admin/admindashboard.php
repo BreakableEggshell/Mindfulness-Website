@@ -1,36 +1,120 @@
 <?php
-session_start();
-include '../src/config.php';
-
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../src/index.php");
-    exit;
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
-$user_id = $_SESSION['user_id'];
+require_once __DIR__ . '/../src/config.php';
 
-$stmt = $mysqli->prepare("
-    SELECT u.full_name, u.username, r.role_name
-    FROM users u
-    LEFT JOIN user_roles r ON u.role_id = r.role_id
-    WHERE u.user_id = ?
-");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$user = $stmt->get_result()->fetch_assoc();
-
-$role = $user['role_name'] ?? "User";
-
-if ($role !== 'Admin') {
-    header("Location: ../src/dashboard.php");
-    exit;
+if (isset($host) && $host !== '') {
+    define('DB_HOST', $host);
+} else {
+    define('DB_HOST', 'localhost');
 }
-?>
+
+if (isset($user) && $user !== '') {
+    define('DB_USER', $user);
+} else {
+
+    define('DB_USER', 'root');
+}
+
+if (isset($pass)) {
+    define('DB_PASS', $pass);
+} else {
+    define('DB_PASS', '');
+}
+
+if (isset($db) && $db !== '') {
+    define('DB_NAME', $db);
+} else {
+    define('DB_NAME', 'mindfulness');
+}
+
+class Database {
+    private $mysqli;
+
+    public function __construct($host, $user, $pass, $dbName) {
+        $this->mysqli = new mysqli($host, $user, $pass, $dbName);
+        
+        if ($this->mysqli->connect_error) {
+            die("Database connection failed: " . $this->mysqli->connect_error);
+        }
+    }
+
+    public function getConnection() {
+        return $this->mysqli;
+    }
+}
+
+class AuthManager {
+    private $db;
+
+    public function __construct(Database $db) {
+        $this->db = $db->getConnection();
+    }
+
+    public function requireLogin($redirectPath = '../src/index.php') {
+        if (!isset($_SESSION['user_id'])) {
+            header("Location: $redirectPath");
+            exit;
+        }
+    }
+
+    public function getCurrentUser() {
+        if (!isset($_SESSION['user_id'])) {
+            return null;
+        }
+
+        $user_id = $_SESSION['user_id'];
+        
+        $sql = "SELECT u.full_name, u.username, r.role_name
+                FROM users u
+                LEFT JOIN user_roles r ON u.role_id = r.role_id
+                WHERE u.user_id = ?";
+        
+        $stmt = $this->db->prepare($sql);
+        
+        if ($stmt === false) {
+             return null;
+        }
+
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $user = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        return $user;
+    }
+
+    public function requireRole($requiredRole = 'Admin', $redirectPath = '../src/dashboard.php') {
+        $user = $this->getCurrentUser();
+        
+        $currentRole = $user['role_name'] ?? 'User';
+
+        if ($currentRole !== $requiredRole) {
+            header("Location: $redirectPath");
+            exit;
+        }
+        return $user;
+    }
+}
+
+class AdminView {
+    private $user;
+
+    public function __construct($user) {
+        $this->user = $user;
+    }
+
+    public function render() {
+        $fullName = htmlspecialchars($this->user['full_name'] ?: $this->user['username']);
+        
+        echo <<<HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - Mindfulness Wellness App</title>
+    <title>Admin Dashboard - Mindfulness Wellness App</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <style>
         body {
@@ -77,13 +161,14 @@ if ($role !== 'Admin') {
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-light header">
-    <a class="navbar-brand fw-bold" href="#">Mindfulness</a>
+    <a class="navbar-brand fw-bold" href="#">Mindfulness Admin</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
         <ul class="navbar-nav">
             <li class="nav-item"><a class="nav-link" href="editusers.php">Edit Users</a></li>
+            <li class="nav-item"><a class="nav-link" href="addexercise.php">Add New Exercise</a></li>
             <li class="nav-item"><a class="nav-link" href="setting.php">Settings</a></li>
             <li class="nav-item"><a class="nav-link" href="../src/logout.php">Logout</a></li>
         </ul>
@@ -92,8 +177,30 @@ if ($role !== 'Admin') {
 
 <div class="container py-3">
     <div class="card p-4 shadow-sm">
-        <h3 class="mb-3">Welcome Admin <?= htmlspecialchars($user['full_name'] ?: $user['username']) ?> </h3>
+        <h3 class="mb-3">Welcome Admin {$fullName}</h3>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+HTML;
+    }
+}
+
+try {
+    $db = new Database(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    
+    $auth = new AuthManager($db);
+    
+    $auth->requireLogin();
+    
+    $admin_user = $auth->requireRole('Admin');
+
+    $view = new AdminView($admin_user);
+    $view->render();
+
+} catch (Exception $e) {
+    die("A critical error occurred: " . $e->getMessage());
+}
+?>

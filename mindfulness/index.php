@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (isset($_SESSION['user_id'])) {
-    header("Location: dashboard.php");
+    header("Location: src/dashboard.php");
     exit;
 }
 ?>
@@ -14,7 +14,7 @@ if (isset($_SESSION['user_id'])) {
 
     <style>
         body {
-            background-color: #FCE7DF; /* soft peach */
+            background-color: #FCE7DF;
             font-family: 'Segoe UI', sans-serif;
         }
         .header {
@@ -91,14 +91,17 @@ if (isset($_SESSION['user_id'])) {
 <div class="header">
     <h4 class="m-0">Mindfulness</h4>
     <div>
-        <a href="login.php" class="btn-login">Login</a>
-        <a href="register.php" class="ms-3">Register</a>
+        <a href="src/login.php" class="btn-login">Login</a>
+        <a href="src/register.php" class="ms-3">Register</a>
     </div>
 </div>
 
 <!-- MAIN LAYOUT -->
 <div class="container-fluid mt-5">
     <div class="row align-items-center">
+
+        <!-- FIXED IMAGE PATH -->
+        <img src="assets/logo_mindfulness.png" alt="" style="width:150px;">
 
         <!-- LEFT SIDE -->
         <div class="col-md-6 hero-left">
@@ -107,8 +110,9 @@ if (isset($_SESSION['user_id'])) {
                 Build better routines, improve your emotional health, and track your daily mindfulness progress.
             </p>
 
-            <a href="register.php" class="btn-dark-purple me-3">Get Started</a>
-    
+            <!-- FIXED PATH -->
+            <a href="src/register.php" class="btn-dark-purple me-3">Get Started</a>
+
         </div>
 
         <!-- RIGHT SIDE -->
@@ -123,7 +127,6 @@ if (isset($_SESSION['user_id'])) {
                     <li>Spend 3 minutes observing your surroundings.</li>
                 </ul>
             </div>
-
 
             <div class="preview-card">
                 <h5 class="fw-bold">Journeys</h5>
