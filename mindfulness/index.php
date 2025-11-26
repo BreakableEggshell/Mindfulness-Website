@@ -101,7 +101,7 @@ if (isset($_SESSION['user_id'])) {
     <div class="row align-items-center">
 
         <!-- FIXED IMAGE PATH -->
-        <img src="assets/logo_mindfulness.png" alt="" style="width:150px;">
+        <img src="assets/Test.png" alt="" style="width:150px;">
 
         <!-- LEFT SIDE -->
         <div class="col-md-6 hero-left">
