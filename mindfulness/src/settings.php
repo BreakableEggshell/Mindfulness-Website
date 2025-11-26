@@ -3,7 +3,7 @@ session_start();
 include 'config.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: index.php");
+    header("Location: ../index.php");
     exit;
 }
 
@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </button>
     <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
         <ul class="navbar-nav">
-            <li class="nav-item"><a class="nav-link" href="exercises.php">Exercises</a></li>
+            <li class="nav-item"><a class="nav-link" href="exerciselist.php">Exercises</a></li>
             <li class="nav-item"><a class="nav-link" href="calendar.php">Calendar</a></li>
             <li class="nav-item"><a class="nav-link" href="progress.php">Progress Tracker</a></li>
             <li class="nav-item"><a class="nav-link active" href="settings.php">Settings</a></li>
