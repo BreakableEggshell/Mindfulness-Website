@@ -1,8 +1,8 @@
 <?php
 $host = 'localhost';
-$user = 's24101113_mindfulness';
-$pass = 'Mindfulness4$';
-$db   = 's24101113_mindfulness';
+$user = 'root';
+$pass = '';
+$db   = 'mindfulness';
 
 $mysqli = new mysqli($host, $user, $pass, $db);
 
@@ -14,8 +14,11 @@ if (!$mysqli->set_charset("utf8mb4")) {
     die("Error loading character set utf8mb4: " . $mysqli->error);
 }
 
+/*
+    Details for when uploading to DCISM
+    $host = 'localhost';
+    $user = 's24101113_mindfulness';
+    $pass = 'Mindfulness4$';
+    $db   = 's24101113_mindfulness';
+*/
 ?>
-
-
-
-
