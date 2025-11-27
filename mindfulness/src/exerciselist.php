@@ -97,7 +97,6 @@ $result = $mysqli->query($sql);
         <ul class="navbar-nav">
             <li class="nav-item"><a class="nav-link" href="./dashboard.php">Dashboard</a></li>
             <li class="nav-item"><a class="nav-link" href="./exerciselist.php">Exercises</a></li>
-            <li class="nav-item"><a class="nav-link" href="">Calendar</a></li>
             <li class="nav-item"><a class="nav-link" href="">Progress Tracker</a></li>
             <li class="nav-item"><a class="nav-link" href="settings.php">Settings</a></li>
             <li class="nav-item"><a class="nav-link" href="logout.php">Logout</a></li>
