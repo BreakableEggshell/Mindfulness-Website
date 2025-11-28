@@ -14,47 +14,7 @@ if (!isset($_SESSION['user_id'])) {
     <meta charset="UTF-8">
     <title>Dashboard - Mindfulness Wellness App</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <style>
-        body {
-            background-color: #FFE9D6;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        .header {
-            background: white;
-            padding: 15px 30px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-        .navbar-nav .nav-link {
-            font-weight: 600;
-            color: #333 !important;
-            margin-left: 15px;
-        }
-        .card {
-            background-color: #FFF4EC;
-            border: 1px solid #FFCCB0;
-        }
-        h3, h5 {
-            color: #D47456;
-        }
-        .table thead {
-            background-color: #FFD6BD;
-            color: #8A3F27;
-        }
-        .btn-outline-danger {
-            border-color: #E67A59;
-            color: #E67A59;
-        }
-        .btn-outline-danger:hover {
-            background-color: #E67A59;
-            color: white;
-        }
-        .table-striped > tbody > tr:nth-of-type(odd) {
-            background-color: #FFF0E6 !important;
-        }
-        .text-muted {
-            color: #B67356 !important;
-        }
-    </style>
+    <link rel="stylesheet" href="progresstrack.css">
 </head>
 <body>
 

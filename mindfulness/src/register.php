@@ -54,22 +54,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Mindfulness App</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-
-    <style>
-        .btn-peach {
-            background-color: #F7A98F !important;
-            border: none !important;
-            color: white !important;
-            padding: 12px;
-            font-size: 1rem;
-            border-radius: 6px;
-            width: 100%;
-            display: block;
-        }
-        .btn-peach:hover {
-            background-color: #e98a6f !important;
-        }
-    </style>
+    <link rel="stylesheet" href="register.css">
+    
 </head>
 
 <body class="bg-light">
