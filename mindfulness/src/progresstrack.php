@@ -14,7 +14,7 @@ if (!isset($_SESSION['user_id'])) {
     <meta charset="UTF-8">
     <title>Dashboard - Mindfulness Wellness App</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="progresstrack.css">
+    <link rel="stylesheet" href="CSS\progresstrack.css">
 </head>
 <body>
 

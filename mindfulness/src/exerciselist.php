@@ -44,7 +44,7 @@ $result = $mysqli->query($sql);
     <meta charset="UTF-8">
     <title>Exercises - Mindfulness Wellness App</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="exerciselist.css">
+    <link rel="stylesheet" href="CSS\exerciselist.css">
 </head>
 <body>
 
