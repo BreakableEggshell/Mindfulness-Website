@@ -1,6 +1,9 @@
 
         body {
-            background-color: #FCE7DF;
+            /*background-color: #FCE7DF;*/
+            background-image: url('assets/Whole.png');
+            background-repeat: no-repeat;
+            background-size: cover;
             font-family: 'Segoe UI', sans-serif;
         }
         .header {
@@ -67,10 +70,4 @@
             width: 100%;
             border-radius: 12px;
             margin-bottom: 15px;
-        }
-        .mascot{
-            float: left;
-            transform: scale(.5);
-            position: absolute;
-            z-index: -1;
         }

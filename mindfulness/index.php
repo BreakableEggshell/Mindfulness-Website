@@ -28,9 +28,6 @@ if (isset($_SESSION['user_id'])) {
 
 <!-- MAIN LAYOUT -->
 <div class="container-fluid mt-5">
-    <div class="mascot">
-        <img src="assets\Test.png" alt="assets\Test.png">
-    </div>
     <div class="row align-items-center">
 
         <!-- FIXED IMAGE PATH -->
