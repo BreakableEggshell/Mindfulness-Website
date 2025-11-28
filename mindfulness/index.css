@@ -71,4 +71,6 @@
         .mascot{
             size: 100%;
             float: left;
+            position: absolute;
+            z-index: -1;
         }
