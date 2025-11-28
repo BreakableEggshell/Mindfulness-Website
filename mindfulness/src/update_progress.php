@@ -1,48 +1,149 @@
-<!--
-    Code is for exerciselist.php to save is_done.
--->
-
 <?php
 session_start();
 include 'config.php';
 
 if (!isset($_SESSION['user_id'])) exit('Not authorized');
 
-$user_id = $_SESSION['user_id'];
-$activity_id = $_POST['activity_id'] ?? 0;
-$is_done = $_POST['is_done'] ?? 0;
+$user_id    = $_SESSION['user_id'];
+$activity_id = intval($_POST['activity_id'] ?? 0);   // This is admin template activity_id
+$is_done     = intval($_POST['is_done'] ?? 0);
 
-if (!$activity_id) exit('Missing activity_id');
+if (!$activity_id) exit("Missing activity_id");
 
-// Check if progress exists
-$stmt = $mysqli->prepare("
-    SELECT progress_id FROM activity_progress 
-    WHERE user_id = ? AND activity_id = ?
-");
-$stmt->bind_param("ii", $user_id, $activity_id);
-$stmt->execute();
-$res = $stmt->get_result();
+// -------------------------------------------------------------
+// UNCHECKED → DELETE USER'S COPIED ACTIVITY
+// -------------------------------------------------------------
+if ($is_done == 0) {
 
-if ($res->num_rows > 0) {
-    // Update
+    // Find user's copy based on template_id
     $stmt = $mysqli->prepare("
-        UPDATE activity_progress 
-        SET is_done = ? 
-        WHERE user_id = ? AND activity_id = ?
+        SELECT activity_id, sub_task_id 
+        FROM activities 
+        WHERE template_id = ? AND created_by = ?
     ");
-    $stmt->bind_param("iii", $is_done, $user_id, $activity_id);
+    $stmt->bind_param("ii", $activity_id, $user_id);
     $stmt->execute();
-} else {
-    // Insert
-    $stmt = $mysqli->prepare("
-        INSERT INTO activity_progress (user_id, activity_id, sub_task_id, is_done, progress_date)
-        SELECT ?, a.activity_id, a.sub_task_id, ?, CURDATE()
-        FROM activities a
-        WHERE a.activity_id = ?
-    ");
-    $stmt->bind_param("iii", $user_id, $is_done, $activity_id);
-    $stmt->execute();
+    $copy = $stmt->get_result()->fetch_assoc();
+
+    if ($copy) {
+        $copy_activity_id = $copy['activity_id'];
+        $copy_subtask_id  = $copy['sub_task_id'];
+
+        // Delete progress
+        $stmt = $mysqli->prepare("DELETE FROM activity_progress WHERE activity_id = ?");
+        $stmt->bind_param("i", $copy_activity_id);
+        $stmt->execute();
+
+        // Delete activity
+        $stmt = $mysqli->prepare("DELETE FROM activities WHERE activity_id = ?");
+        $stmt->bind_param("i", $copy_activity_id);
+        $stmt->execute();
+
+        // Delete copied subtask
+        $stmt = $mysqli->prepare("DELETE FROM sub_tasks WHERE sub_task_id = ?");
+        $stmt->bind_param("i", $copy_subtask_id);
+        $stmt->execute();
+    }
+
+    exit("unchecked-deleted");
 }
 
-echo 'success';
+
+
+// -------------------------------------------------------------
+// CHECKED → CREATE USER COPY (unless already created)
+// -------------------------------------------------------------
+
+// ----------- DUPLICATION CHECK -----------
+$stmt = $mysqli->prepare("
+    SELECT activity_id, sub_task_id 
+    FROM activities 
+    WHERE template_id = ? AND created_by = ?
+");
+$stmt->bind_param("ii", $activity_id, $user_id);
+$stmt->execute();
+$existing = $stmt->get_result()->fetch_assoc();
+
+if ($existing) {
+    $existing_activity_id = $existing['activity_id'];
+    $existing_subtask_id  = $existing['sub_task_id'];
+
+    // Ensure progress is marked done
+    $stmt = $mysqli->prepare("
+        INSERT INTO activity_progress (user_id, sub_task_id, activity_id, is_done, progress_date)
+        VALUES (?, ?, ?, 1, CURDATE())
+        ON DUPLICATE KEY UPDATE is_done = 1
+    ");
+    $stmt->bind_param("iii", $user_id, $existing_subtask_id, $existing_activity_id);
+    $stmt->execute();
+
+    exit("duplicate-skip");
+}
+
+
+// -------------------------------------------------------------
+// CREATE NEW USER COPY
+// -------------------------------------------------------------
+
+// Fetch template activity
+$stmt = $mysqli->prepare("
+    SELECT activity_name, duration_text, sub_task_id 
+    FROM activities 
+    WHERE activity_id = ?
+");
+$stmt->bind_param("i", $activity_id);
+$stmt->execute();
+$template = $stmt->get_result()->fetch_assoc();
+
+if (!$template) exit("Template not found");
+
+// Fetch template subtask
+$stmt = $mysqli->prepare("
+    SELECT sub_task_name, description
+    FROM sub_tasks
+    WHERE sub_task_id = ?
+");
+$stmt->bind_param("i", $template['sub_task_id']);
+$stmt->execute();
+$subtemp = $stmt->get_result()->fetch_assoc();
+
+
+// ----------- CREATE USER SUBTASK COPY -----------
+$stmt = $mysqli->prepare("
+    INSERT INTO sub_tasks (sub_task_name, description)
+    VALUES (?, ?)
+");
+$stmt->bind_param("ss", $subtemp['sub_task_name'], $subtemp['description']);
+$stmt->execute();
+$new_subtask_id = $stmt->insert_id;
+
+
+// ----------- CREATE USER ACTIVITY COPY -----------
+$stmt = $mysqli->prepare("
+    INSERT INTO activities (user_id, sub_task_id, activity_name, schedule_datetime, duration_text, created_by, template_id)
+    VALUES (?, ?, ?, CURDATE(), ?, ?, ?)
+");
+$stmt->bind_param(
+    "iissii",
+    $user_id,
+    $new_subtask_id,
+    $template['activity_name'],
+    $template['duration_text'],
+    $user_id,         // created_by = this user
+    $activity_id      // template_id = admin activity_id
+);
+$stmt->execute();
+$new_activity_id = $stmt->insert_id;
+
+
+// ----------- CREATE PROGRESS ENTRY -----------
+$stmt = $mysqli->prepare("
+    INSERT INTO activity_progress (user_id, sub_task_id, activity_id, is_done, progress_date)
+    VALUES (?, ?, ?, 1, CURDATE())
+");
+$stmt->bind_param("iii", $user_id, $new_subtask_id, $new_activity_id);
+$stmt->execute();
+
+
+echo "created";
 ?>

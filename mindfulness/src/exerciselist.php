@@ -28,14 +28,13 @@ $sql = "
         a.activity_id,
         a.activity_name,
         a.duration_text,
-        s.sub_task_name,
-        COALESCE(p.is_done, 0) AS is_completed
+        s.sub_task_name
     FROM activities a
     LEFT JOIN sub_tasks s ON a.sub_task_id = s.sub_task_id
-    LEFT JOIN activity_progress p 
-        ON p.activity_id = a.activity_id 
-        AND p.user_id = $user_id
+    INNER JOIN users u ON a.created_by = u.user_id
+    WHERE u.role_id = 1
 ";
+
 $result = $mysqli->query($sql);
 ?>
 <!DOCTYPE html>
@@ -133,16 +132,36 @@ $result = $mysqli->query($sql);
                 <?php if ($result && $result->num_rows > 0): ?>
                     <?php while ($row = $result->fetch_assoc()): ?>
                         <?php
-                            // Fetch progress for this user/activity
+                            // Find if user has a copied version of this admin activity
                             $stmt = $mysqli->prepare("
-                                SELECT is_done FROM activity_progress 
-                                WHERE user_id = ? AND activity_id = ?
+                                SELECT activity_id, sub_task_id
+                                FROM activities
+                                WHERE template_id = ? AND created_by = ?
                             ");
-                            $stmt->bind_param("ii", $user_id, $row['activity_id']);
+                            $stmt->bind_param("ii", $row['activity_id'], $user_id);
                             $stmt->execute();
-                            $res = $stmt->get_result();
-                            $progress = $res->fetch_assoc();
-                            $is_done = $progress['is_done'] ?? 0;
+                            $userCopy = $stmt->get_result()->fetch_assoc();
+
+                            // Default: not done
+                            $is_done = 0;
+
+                            if ($userCopy) {
+                                $copy_activity_id = $userCopy['activity_id'];
+
+                                // Check progress of user's copied activity
+                                $stmt = $mysqli->prepare("
+                                    SELECT is_done
+                                    FROM activity_progress
+                                    WHERE user_id = ? AND activity_id = ?
+                                ");
+                                $stmt->bind_param("ii", $user_id, $copy_activity_id);
+                                $stmt->execute();
+                                $res = $stmt->get_result()->fetch_assoc();
+
+                                if ($res && $res['is_done'] == 1) {
+                                    $is_done = 1;
+                                }
+                            }
                         ?>
                         <tr>
                             <td><?= htmlspecialchars($row['activity_name']) ?></td>
@@ -174,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.mark-done').forEach(function(checkbox) {
         checkbox.addEventListener('change', function() {
             const activityId = this.dataset.activity;
-            const isDone = this.checked ? 1 : 0;
+            const isDone = this.checked ? 1 : 0; 
 
             fetch('update_progress.php', {
                 method: 'POST',
