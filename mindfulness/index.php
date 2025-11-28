@@ -35,14 +35,17 @@ if (isset($_SESSION['user_id'])) {
 
         <!-- LEFT SIDE -->
         <div class="col-md-6 hero-left">
-            <h1 class="hero-title">Fuel wellness through mindful habits</h1>
-            <p class="hero-text">
+            <div class="title_wrapper">
+            <img class="logo" src="assets/logo_mindfulness.png" alt="mindfulness/assets/logo_mindfulness.png">
+            <div class="flavour_text">
+            <h1 class="hero-title">Wellness starts with you</h1>
+             <p class="hero-text">
                 Build better routines, improve your emotional health, and track your daily mindfulness progress.
             </p>
-
             <!-- FIXED PATH -->
             <a href="src/register.php" class="btn-dark-purple me-3">Get Started</a>
-
+            </div>
+            </div>
         </div>
 
         <!-- RIGHT SIDE -->

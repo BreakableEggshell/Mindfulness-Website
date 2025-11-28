@@ -30,11 +30,16 @@
             background-color: #d47860;
         }
         .hero-left {
-            padding: 60px;
+            padding: 50px;
+            background-image: url('assets/temp.png');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 100% 100%;
         }
         .hero-title {
             font-size: 3rem;
             font-weight: 700;
+            font-family: cursive;
         }
         .hero-text {
             color: #444;
@@ -71,3 +76,14 @@
             border-radius: 12px;
             margin-bottom: 15px;
         }
+        .title_wrapper{
+            display: flex;
+            align-items: center;
+        }
+        .title_wrapper .logo{
+           max-width: 20%;
+           height: auto;
+        }
+         .title_wrapper .flavour_text{
+            flex-direction: column;
+         }
