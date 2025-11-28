@@ -68,3 +68,7 @@
             border-radius: 12px;
             margin-bottom: 15px;
         }
+        .mascot{
+            size: 100%;
+            float: left;
+        }
