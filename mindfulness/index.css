@@ -69,7 +69,8 @@
             margin-bottom: 15px;
         }
         .mascot{
-            size: 100px;
+            float: left;
+            transform: scale(.5);
             position: absolute;
             z-index: -1;
         }

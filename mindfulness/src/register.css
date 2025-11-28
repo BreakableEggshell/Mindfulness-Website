@@ -1,0 +1,14 @@
+
+        .btn-peach {
+            background-color: #F7A98F !important;
+            border: none !important;
+            color: white !important;
+            padding: 12px;
+            font-size: 1rem;
+            border-radius: 6px;
+            width: 100%;
+            display: block;
+        }
+        .btn-peach:hover {
+            background-color: #e98a6f !important;
+        }

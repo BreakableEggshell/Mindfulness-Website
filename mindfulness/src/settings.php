@@ -48,35 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <title>Settings - Mindfulness Wellness App</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <style>
-        body {
-            background-color: #FFE9D6;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        .header {
-            background: white;
-            padding: 15px 30px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-        .navbar-nav .nav-link {
-            font-weight: 600;
-            color: #333 !important;
-            margin-left: 15px;
-        }
-        .card {
-            background-color: #FFF4EC;
-            border: 1px solid #FFCCB0;
-        }
-        h3, h5 {
-            color: #D47456;
-        }
-        .text-muted {
-            color: #B67356 !important;
-        }
-        .form-label {
-            font-weight: 500;
-        }
-    </style>
+    <link rel="stylesheet" href="settings.css">
 </head>
 <body>
 
