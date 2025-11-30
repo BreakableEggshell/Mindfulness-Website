@@ -25,9 +25,6 @@ $stmt->close();
 // Placeholder for display message
 $message = $_GET['message'] ?? ''; 
 
-// --- FIXED SQL QUERY FOR USER'S EXERCISES ---
-// This query prevents duplication by only showing Admin templates 
-// if the user has NOT created a copy yet.
 $sql = "
     SELECT 
         a.activity_id,
@@ -115,26 +112,11 @@ $result = $mysqli->query($sql);
                         $is_template = ($row['creator_role'] === 'Admin');
                         $is_done = 0;
                         
-                        // If it's a template, we need to know the User's copy ID to check progress later.
-                        // This logic is necessary because the main query now only shows the TEMPLATE 
-                        // if the copy doesn't exist, OR it shows the USER COPY. We need to be able 
-                        // to check the progress of the item currently being displayed.
-
                         $activity_to_check_progress_id = $row['activity_id'];
                         if ($is_template) {
-                            // If it's an Admin template currently visible, we check if the user 
-                            // has a copy just for progress checking (though progress is likely 0).
-                            // More importantly, we use the $row['activity_id'] as the TEMPLATE_ID 
-                            // for the update_progress.php script.
                         } else {
-                            // If it's a user's activity (either original or copy), check progress directly.
                             $activity_to_check_progress_id = $row['activity_id'];
                         }
-
-
-                        // Check progress for the determined activity ID
-                        // This logic should check progress against the user's specific copy if it exists,
-                        // or against the current activity ID if it's the user's own creation.
                         if (!$is_template) {
                             $stmt_progress = $mysqli->prepare("
                                 SELECT is_done
@@ -186,7 +168,6 @@ $result = $mysqli->query($sql);
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.mark-done').forEach(function(checkbox) {
         checkbox.addEventListener('change', function() {
-            // Note: templateId here refers to the activity_id shown in the table (which is the Admin ID if it's a template)
             const activityId = this.dataset.activity; 
             const isTemplate = this.dataset.isTemplate; 
             const isDone = this.checked ? 1 : 0; 
@@ -200,22 +181,17 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 console.log('Progress updated:', data);
                 if (data.status === 'success') {
-                    // If a template was marked done, we created a new user activity. 
-                    // Refresh the list to show the new user copy instead of the template.
                     if (isTemplate === '1' && isDone === 1) {
                         window.location.href = 'exerciselist.php?message=Exercise%20completed!%20Refreshing%20list.';
                     } else if (isDone === 1) {
-                        // Redirect to the progress tracker upon successful completion
                         window.location.href = 'progresstrack.php?status=completed';
                     }
                 } else {
-                    // Revert checkbox if update failed
                     this.checked = !this.checked;
                     alert(`Update failed: ${data.message}`);
                 }
             })
             .catch(err => {
-                // Revert checkbox if update failed due to network error
                 this.checked = !this.checked;
                 alert('Error updating progress. See console for details.');
                 console.error(err);

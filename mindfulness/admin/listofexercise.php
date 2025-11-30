@@ -68,7 +68,6 @@ class ActivityManager {
         $result = $this->db->query($sql);
         return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
     }
-    // -----------------------------------------------------------------------
 
     // NEW METHOD: Deletes the activity and all associated steps/progress
     public function deleteActivityAndSteps(int $activityId) {
@@ -254,9 +253,6 @@ HTML;
     }
 }
 
-// ==========================================================
-// EXECUTION / CONTROLLER LOGIC
-// ==========================================================
 $message = '';
 
 try {

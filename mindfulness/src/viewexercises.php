@@ -44,7 +44,6 @@ $activity_name = htmlspecialchars($activity_details['activity_name']);
 $duration_text = htmlspecialchars($activity_details['duration_text']);
 
 // --- 2. Fetch ALL Sub-Tasks (Steps) for this Activity ---
-// This assumes the sub_tasks table uses activity_id as a foreign key to link steps to the template.
 $stmt = $mysqli->prepare("
     SELECT sub_task_name, description
     FROM sub_tasks
@@ -81,7 +80,6 @@ $stmt->close();
 
 <div class="container py-3">
     <div class="card p-4 shadow-sm">
-        <a href="exerciselist.php" class="btn btn-sm btn-outline-secondary mb-4" style="width: auto;">← Back to Exercises</a>
 
         <h3 class="mb-2"><?= $activity_name ?></h3>
         <h5 class="text-muted mb-4">Duration: <?= $duration_text ?></h5>
@@ -112,6 +110,8 @@ $stmt->close();
         <?php else: ?>
             <div class="alert alert-warning">No steps have been defined for this activity yet.</div>
         <?php endif; ?>
+
+        <a href="exerciselist.php" class="btn btn-sm btn-outline-secondary mb-4" style="width: auto;">← Back to Exercises</a>
 
     </div>
 </div>

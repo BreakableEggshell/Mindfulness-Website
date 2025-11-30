@@ -101,7 +101,7 @@ class ActivityManager {
         if ($stmt === false) return "Error preparing statement: " . $this->db->error;
         $stmt->bind_param("ssi", $name, $description, $stepId);
         
-        if ($stmt->execute()) { return "Step ID $stepId updated successfully!"; }
+        if ($stmt->execute()) { return "$name updated successfully!"; }
         return "Database Error: " . $stmt->error;
     }
 
@@ -172,11 +172,10 @@ class EditStepsView {
         $stepName = $isEditing ? htmlspecialchars($this->editingStep['sub_task_name']) : '';
         $description = $isEditing ? htmlspecialchars($this->editingStep['description']) : '';
         $action = $isEditing ? 'update' : 'add';
-        $buttonText = $isEditing ? 'Save Changes' : 'Add New Step';
+        $buttonText = $isEditing ? 'Save Changes' : 'Add New Sub-Task';
 
         return '
         <div class="card p-4 bg-light mb-4">
-            <h5 class="' . ($isEditing ? 'text-warning' : 'text-success') . '">' . ($isEditing ? "Editing Step ID: $stepId" : "Add New Step") . '</h5>
             <form method="POST">
                 <input type="hidden" name="activity_id" value="' . $this->activityId . '">
                 <input type="hidden" name="action" value="' . $action . '">
@@ -225,7 +224,7 @@ class EditStepsView {
 
         <a href="listofexercise.php" class="btn btn-sm btn-outline-secondary mb-4">← Back to Exercise List</a>
 
-        <h4 class="mb-3">Sub-Tasks / Steps</h4>
+        <h4 class="mb-3">Sub-Tasks</h4>
 
         {$messageHtml}
         {$stepsListHtml}
@@ -240,9 +239,6 @@ HTML;
     }
 }
 
-// ==========================================================
-// EXECUTION / CONTROLLER LOGIC
-// ==========================================================
 $message = '';
 $editingStep = null;
 $activityId = (int)($_REQUEST['activity_id'] ?? 0);

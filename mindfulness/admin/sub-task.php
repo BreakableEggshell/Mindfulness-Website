@@ -155,7 +155,7 @@ class AdminAddStepsView {
 <body>
 <div class="container py-3">
     <div class="card p-4 shadow-sm mx-auto" style="max-width: 600px;">
-        <h3 class="mb-3">STEP 2: Add Sub-Tasks for '{$this->activityName}' (ID: {$this->activityId})</h3>
+        <h3 class="mb-3">STEP 2: Add Sub-Tasks for '{$this->activityName}'</h3>
         
         {$messageHtml}
         
@@ -167,7 +167,7 @@ class AdminAddStepsView {
             <input type="hidden" name="activity_id" value="{$this->activityId}">
             
             <div class="mb-3">
-                <label for="sub_task_name" class="form-label">Sub-Task Name (Step Title)</label>
+                <label for="sub_task_name" class="form-label">Sub-Task Name </label>
                 <input type="text" class="form-control" id="sub_task_name" name="sub_task_name" required>
             </div>
 
@@ -189,9 +189,6 @@ HTML;
     }
 }
 
-// ==========================================================
-// EXECUTION / CONTROLLER LOGIC (Step 2)
-// ==========================================================
 $message = '';
 $activityId = (int)($_REQUEST['activity_id'] ?? 0);
 $activityName = 'Activity'; // Placeholder until lookup is added

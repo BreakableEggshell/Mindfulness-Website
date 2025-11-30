@@ -75,7 +75,6 @@ class ActivityManager {
             return "Error: Exercise Name and Duration are required.";
         }
         
-        // SQL: Simplified to only insert name, duration, and user_id
         $sql = "INSERT INTO activities (activity_name, duration_text, user_id) VALUES (?, ?, ?)";
         $stmt = $this->db->prepare($sql);
         
@@ -151,7 +150,7 @@ class AdminAddExerciseView {
                 <input type="text" class="form-control" id="duration_text" name="duration_text" required>
             </div>
 
-            <button type="submit" class="btn btn-primary">Continue to Step 2: Add Sub-Tasks</button>
+            <button type="submit" class="btn btn-primary">Add Sub-Tasks</button>
         </form>
     </div>
 </div>
@@ -163,9 +162,6 @@ HTML;
     }
 }
 
-// ==========================================================
-// EXECUTION / CONTROLLER LOGIC
-// ==========================================================
 $message = '';
 
 try {
@@ -185,7 +181,6 @@ try {
         
         if (is_int($result) && $result > 0) {
             $newActivityId = $result;
-            // Redirect to the new page for adding sub-tasks (Step 2)
             header("Location: sub-task.php?activity_id={$newActivityId}");
             exit;
         } else {
@@ -193,7 +188,6 @@ try {
         }
     }
     
-    // Removed $subTasks fetching
     
     $view = new AdminAddExerciseView($currentUser, $message);
     $view->render();
