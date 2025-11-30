@@ -70,26 +70,21 @@ class ActivityManager {
     private $db;
     public function __construct(Database $db) { $this->db = $db->getConnection(); }
 
-    public function getSubTasks() {
-        $result = $this->db->query("SELECT sub_task_id, sub_task_name FROM sub_tasks ORDER BY sub_task_name");
-        return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
-    }
-
-    public function addActivity(int $adminId, string $name, string $duration, int $subTaskId) {
-        if (empty($name) || empty($duration) || empty($subTaskId)) {
-            return "Error: All fields are required.";
+    public function addActivity(int $adminId, string $name, string $duration) {
+        if (empty($name) || empty($duration)) {
+            return "Error: Exercise Name and Duration are required.";
         }
         
-        // activities table requires a `user_id` foreign key referencing users.user_id
-        $sql = "INSERT INTO activities (activity_name, duration_text, sub_task_id, user_id) VALUES (?, ?, ?, ?)";
+        // SQL: Simplified to only insert name, duration, and user_id
+        $sql = "INSERT INTO activities (activity_name, duration_text, user_id) VALUES (?, ?, ?)";
         $stmt = $this->db->prepare($sql);
         
         if ($stmt === false) { return "Error preparing statement: " . $this->db->error; }
         
-        $stmt->bind_param("ssii", $name, $duration, $subTaskId, $adminId);
+        $stmt->bind_param("ssi", $name, $duration, $adminId);
         
         if ($stmt->execute()) {
-            return "New exercise '$name' added successfully!";
+            return $this->db->insert_id;
         } else {
             return "Database Error: " . $stmt->error;
         }
@@ -98,12 +93,10 @@ class ActivityManager {
 
 class AdminAddExerciseView {
     private $user;
-    private $subTasks;
     private $message;
 
-    public function __construct($user, $subTasks, $message) {
+    public function __construct($user, $message) {
         $this->user = $user;
-        $this->subTasks = $subTasks;
         $this->message = $message;
     }
 
@@ -133,6 +126,7 @@ class AdminAddExerciseView {
         <ul class="navbar-nav">
             <li class="nav-item"><a class="nav-link" href="editusers.php">Edit Users</a></li>
             <li class="nav-item"><a class="nav-link" href="addexercise.php">Add New Exercise</a></li>
+            <li class="nav-item"><a class="nav-link" href="listofexercise.php">List New Exercise</a></li>
             <li class="nav-item"><a class="nav-link" href="setting.php">Settings</a></li>
             <li class="nav-item"><a class="nav-link" href="../src/logout.php">Logout</a></li>
         </ul>
@@ -141,7 +135,7 @@ class AdminAddExerciseView {
 
 <div class="container py-3">
     <div class="card p-4 shadow-sm mx-auto" style="max-width: 600px;">
-        <h3 class="mb-3">Add New Exercise</h3>
+        <h3 class="mb-3">STEP 1: Create New Activity</h3>
         <p class="text-muted">Logged in as: {$fullName}</p>
 
         {$messageHtml}
@@ -153,24 +147,11 @@ class AdminAddExerciseView {
             </div>
             
             <div class="mb-3">
-                <label for="sub_task_id" class="form-label">Category (Sub-Task)</label>
-                <select class="form-select" id="sub_task_id" name="sub_task_id" required>
-                    <option value="">Select a Category</option>
-HTML;
-        foreach ($this->subTasks as $task) {
-            echo "<option value=\"{$task['sub_task_id']}\">" . htmlspecialchars($task['sub_task_name']) . "</option>";
-        }
-        
-        echo <<<HTML
-                </select>
-            </div>
-
-            <div class="mb-3">
                 <label for="duration_text" class="form-label">Duration Text (e.g., 10 minutes)</label>
                 <input type="text" class="form-control" id="duration_text" name="duration_text" required>
             </div>
 
-            <button type="submit" class="btn btn-primary">Add Exercise</button>
+            <button type="submit" class="btn btn-primary">Continue to Step 2: Add Sub-Tasks</button>
         </form>
     </div>
 </div>
@@ -182,6 +163,9 @@ HTML;
     }
 }
 
+// ==========================================================
+// EXECUTION / CONTROLLER LOGIC
+// ==========================================================
 $message = '';
 
 try {
@@ -196,20 +180,22 @@ try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = $_POST['activity_name'] ?? '';
         $duration = $_POST['duration_text'] ?? '';
-        $subTaskId = (int)($_POST['sub_task_id'] ?? 0);
         
-        $message = $activityManager->addActivity($userId, $name, $duration, $subTaskId);
-
-        // If the add succeeded, redirect to the exercise list so the user sees the new item
-        // if (stripos($message, 'added successfully') !== false) {
-        //     header('Location: ../src/exerciselist.php');
-        //     exit;
-        // }
+        $result = $activityManager->addActivity($userId, $name, $duration);
+        
+        if (is_int($result) && $result > 0) {
+            $newActivityId = $result;
+            // Redirect to the new page for adding sub-tasks (Step 2)
+            header("Location: sub-task.php?activity_id={$newActivityId}");
+            exit;
+        } else {
+            $message = $result;
+        }
     }
     
-    $subTasks = $activityManager->getSubTasks();
-
-    $view = new AdminAddExerciseView($currentUser, $subTasks, $message);
+    // Removed $subTasks fetching
+    
+    $view = new AdminAddExerciseView($currentUser, $message);
     $view->render();
 
 } catch (Exception $e) {
