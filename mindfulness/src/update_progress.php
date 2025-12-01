@@ -16,8 +16,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // 1. Get POST data
 $template_id = filter_input(INPUT_POST, 'activity_id', FILTER_VALIDATE_INT);
-$is_done = filter_input(INPUT_POST, 'is_done', FILTER_VALIDATE_INT); // 1 for done, 0 for undone
+$is_done = filter_input(INPUT_POST, 'is_done', FILTER_VALIDATE_INT); // 1 = done, 0 = undone
 $is_template_flag = filter_input(INPUT_POST, 'is_template', FILTER_VALIDATE_INT);
+
 $user_id = $_SESSION['user_id'];
 $today_date = date('Y-m-d');
 
@@ -31,8 +32,9 @@ $current_activity_id = $template_id;
 $is_new_user_activity = false;
 
 try {
-    // --- STEP 2: Handle Admin Templates (if necessary) ---
+    // --- STEP 2: Handle Admin Templates ---
     if ($is_template_flag == 1 && $is_done == 1) {
+
         // Check if a user-specific copy exists
         $stmt_check = $mysqli->prepare("
             SELECT activity_id FROM activities 
@@ -56,24 +58,25 @@ try {
             $stmt_get_template->close();
 
             if ($template_data) {
-                // 1. Insert the new activity row for the user
+
+                // Insert user copy
                 $stmt_insert = $mysqli->prepare("
                     INSERT INTO activities (user_id, activity_name, duration_text, template_id)
                     VALUES (?, ?, ?, ?)
                 ");
                 $stmt_insert->bind_param(
-                    "issi", 
-                    $user_id, 
-                    $template_data['activity_name'], 
-                    $template_data['duration_text'], 
+                    "issi",
+                    $user_id,
+                    $template_data['activity_name'],
+                    $template_data['duration_text'],
                     $template_id
                 );
                 $stmt_insert->execute();
                 $current_activity_id = $mysqli->insert_id;
                 $stmt_insert->close();
-                $is_new_user_activity = true; 
-                
-                // 2. *** CRITICAL FIX: CLONE SUB-TASKS, INCLUDING sub_task_name ***
+                $is_new_user_activity = true;
+
+                // Clone subtasks
                 $stmt_copy_subtasks = $mysqli->prepare("
                     INSERT INTO sub_tasks (activity_id, sub_task_name, description)
                     SELECT ?, sub_task_name, description
@@ -83,17 +86,16 @@ try {
                 $stmt_copy_subtasks->bind_param("ii", $current_activity_id, $template_id);
                 $stmt_copy_subtasks->execute();
                 $stmt_copy_subtasks->close();
-                // *** END CRITICAL FIX ***
-                
+
             } else {
                 throw new Exception("Template not found.");
             }
         }
     }
-    
-    // --- STEP 3: Update/Insert Progress (Assumes sub_task_id is dropped) ---
-    
-    // Check if a progress entry exists for today for this activity
+
+    // --- STEP 3: Manage Progress (Insert when checked, Delete when unchecked) ---
+
+    // Check if today's progress exists
     $stmt_check_progress = $mysqli->prepare("
         SELECT progress_id FROM activity_progress
         WHERE user_id = ? AND activity_id = ? AND DATE(progress_date) = ?
@@ -103,32 +105,42 @@ try {
     $progress_row = $stmt_check_progress->get_result()->fetch_assoc();
     $stmt_check_progress->close();
 
-    if ($progress_row) {
-        // Update existing progress for today
-        $stmt_update = $mysqli->prepare("
-            UPDATE activity_progress SET is_done = ?, progress_date = NOW()
-            WHERE progress_id = ?
-        ");
-        $stmt_update->bind_param("ii", $is_done, $progress_row['progress_id']);
-        $stmt_update->execute();
-        $stmt_update->close();
-    } else {
-        // Insert new progress entry
-        if ($is_done == 1) { // Only insert if marking as done today
+    if ($is_done == 1) {
+        // INSERT or UPDATE progress when checked
+        if ($progress_row) {
+            $stmt_update = $mysqli->prepare("
+                UPDATE activity_progress SET is_done = 1, progress_date = NOW()
+                WHERE progress_id = ?
+            ");
+            $stmt_update->bind_param("i", $progress_row['progress_id']);
+            $stmt_update->execute();
+            $stmt_update->close();
+        } else {
             $stmt_insert_progress = $mysqli->prepare("
                 INSERT INTO activity_progress (user_id, activity_id, is_done, progress_date)
-                VALUES (?, ?, ?, NOW())
+                VALUES (?, ?, 1, NOW())
             ");
-            $stmt_insert_progress->bind_param("iii", $user_id, $current_activity_id, $is_done);
+            $stmt_insert_progress->bind_param("ii", $user_id, $current_activity_id);
             $stmt_insert_progress->execute();
             $stmt_insert_progress->close();
+        }
+
+    } else {
+        // DELETE progress when unchecked
+        if ($progress_row) {
+            $stmt_delete = $mysqli->prepare("
+                DELETE FROM activity_progress WHERE progress_id = ?
+            ");
+            $stmt_delete->bind_param("i", $progress_row['progress_id']);
+            $stmt_delete->execute();
+            $stmt_delete->close();
         }
     }
 
     $mysqli->commit();
     echo json_encode([
-        'status' => 'success', 
-        'message' => 'Progress updated successfully.', 
+        'status' => 'success',
+        'message' => 'Progress updated successfully.',
         'activity_id' => $current_activity_id,
         'new_activity_created' => $is_new_user_activity
     ]);
