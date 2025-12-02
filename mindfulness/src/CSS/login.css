@@ -14,5 +14,9 @@
             background-color: #e98a6f !important;
         }
         body {
-            background: #f6f8fa;
+            background-color: #FCE7DF;
+            background-image: url('CSS/assets/BG_1.png');
+            background-repeat: no-repeat;
+            background-size: cover;
+            font-family: 'Segoe UI', sans-serif;
         }

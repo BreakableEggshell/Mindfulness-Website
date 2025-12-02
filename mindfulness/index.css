@@ -30,11 +30,15 @@
             background-color: #d47860;
         }
         .hero-left {
+            display: flex;
+            flex-direction: column;
             padding: 50px;
+            gap: 100px;
+            position: relative;
         }
         .hero-title {
             font-size: 2rem;
-            font-weight: 700;
+            font-weight: 200;
             font-family: cursive;
         }
         .hero-text {
@@ -66,6 +70,7 @@
             padding: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             margin-bottom: 20px;
+            font-family: cursive;
         }
         img.preview-img {
             width: 100%;
@@ -73,10 +78,16 @@
             margin-bottom: 15px;
         }
         .title_wrapper{
+            
+            pointer-events: none;
+            position: relative;
+            z-index: 2;
             display: flex;
             align-items: center;
-            margin-left: 50px;
-            margin-bottom: 10px;
+            justify-content: center;
+            bottom: -50px;
+            left: -100px;
+            
         }
         .title_wrapper .logo{
            max-width: 20%;
@@ -84,4 +95,11 @@
         }
          .title_wrapper .flavour_text{
             flex-direction: column;
+         }
+         .start .start_img{
+            width: 80%;
+         }
+         .start{
+            position: absolute;
+            z-index: 1;
          }

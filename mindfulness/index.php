@@ -36,31 +36,28 @@ if (isset($_SESSION['user_id'])) {
         <!-- LEFT SIDE -->
          
         <div class="col-md-6 hero-left">
-            
-            <div class="title_wrapper">
-            <img class="logo" src="assets/logo_mindfulness.png" alt="mindfulness/assets/logo_mindfulness.png">
-            <div class="flavour_text">
-            <h1 class="hero-title">Wellness starts with you</h1>
-            
-            <!-- FIXED PATH -->
-            <a href="src/register.php" class="btn-dark-purple me-3">Get Started</a>
+            <div class="start">
+                <a href="src/register.php">
+                    <img class="start_img" src="assets/Board.png" alt="assets/Board.png">
+                </a>
             </div>
+            <div class="title_wrapper">
+                    <img class="logo" src="assets/logo_mindfulness.png" alt="mindfulness/assets/logo_mindfulness.png">
+                    <div class="flavour_text">
+                    <h1 class="hero-title">Wellness starts with you</h1>
+                    </div>
             </div>
             <div class="col-md-5">
-
             <div class="preview-card">
-                <h5 class="fw-bold">Daily Mindfulness Tips</h5>
-                <p class="text-muted">Small steps to improve your well-being.</p>
-                <ul>
-                    <li>Take 5 slow breaths before starting work.</li>
-                    <li>Write down one thing you're grateful for.</li>
-                    <li>Spend 3 minutes observing your surroundings.</li>
-                </ul>
+                <h5 class="fw-bold">What we are</h5>
+                <p class="text-muted">A customer first, service. That seeks to better the users day to day life.</p>
             </div>
 
             <div class="preview-card">
-                <h5 class="fw-bold">Journeys</h5>
+                <h5 class="fw-bold">What we offer</h5>
                 <p class="text-muted">Track your progress and build meaningful habits.</p>
+                <p class="text-muted">Small and non intensive exercises help keep your body</p>
+                <p class="text-muted">Tasks that help keep your hands busy to keep your mind off things. </p>
             </div>
 
         </div>
