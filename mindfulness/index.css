@@ -31,12 +31,9 @@
         }
         .hero-left {
             padding: 50px;
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: 100% 100%;
         }
         .hero-title {
-            font-size: 3rem;
+            font-size: 2rem;
             font-weight: 700;
             font-family: cursive;
         }
@@ -78,6 +75,8 @@
         .title_wrapper{
             display: flex;
             align-items: center;
+            margin-left: 50px;
+            margin-bottom: 10px;
         }
         .title_wrapper .logo{
            max-width: 20%;

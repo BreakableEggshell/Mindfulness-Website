@@ -34,22 +34,19 @@ if (isset($_SESSION['user_id'])) {
        
 
         <!-- LEFT SIDE -->
+         
         <div class="col-md-6 hero-left">
+            
             <div class="title_wrapper">
             <img class="logo" src="assets/logo_mindfulness.png" alt="mindfulness/assets/logo_mindfulness.png">
             <div class="flavour_text">
             <h1 class="hero-title">Wellness starts with you</h1>
-             <p class="hero-text">
-                Build better routines, improve your emotional health, and track your daily mindfulness progress.
-            </p>
+            
             <!-- FIXED PATH -->
             <a href="src/register.php" class="btn-dark-purple me-3">Get Started</a>
             </div>
             </div>
-        </div>
-
-        <!-- RIGHT SIDE -->
-        <div class="col-md-5">
+            <div class="col-md-5">
 
             <div class="preview-card">
                 <h5 class="fw-bold">Daily Mindfulness Tips</h5>
@@ -67,6 +64,10 @@ if (isset($_SESSION['user_id'])) {
             </div>
 
         </div>
+            </div>
+
+        <!-- RIGHT SIDE -->
+        
 
     </div>
 </div>
