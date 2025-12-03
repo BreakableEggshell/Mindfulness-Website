@@ -119,6 +119,9 @@ class AdminView {
     <style>
         body {
             background-color: #FFE9D6;
+            background-image: url('../assets/BG_1.png');
+            background-repeat: no-repeat;
+            background-size: cover;
             font-family: 'Segoe UI', sans-serif;
         }
         .header {
