@@ -182,6 +182,10 @@ class AdminView {
 <div class="container py-3">
     <div class="card p-4 shadow-sm">
         <h3 class="mb-3">Welcome Admin {$fullName}</h3>
+        <br><br><br><br>
+        <h5 class="mb-3">Welcome to your dashboard. Manage users, and create new exercises.</h5>
+
+
     </div>
 </div>
 
