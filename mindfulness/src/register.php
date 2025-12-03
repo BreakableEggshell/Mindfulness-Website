@@ -2,63 +2,98 @@
 session_start();
 include('config.php');
 
-$error = "";
+/* ============================================================
+   PARENT CLASS: UserBase (Encapsulation)
+   ============================================================ */
+class UserBase {
+    protected $mysqli;
+    protected string $full_name = "";
+    protected string $email = "";
+    protected string $username = "";
+    protected string $password = "";
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    public function __construct(mysqli $db) {
+        $this->mysqli = $db;
+    }
 
-    $full_name = trim($_POST['full_name']);
-    $email = trim($_POST['email']);
-    $username = trim($_POST['username']);
-    $password = trim($_POST['password']);
+    public function setCredentials(string $full_name, string $email, string $username, string $password) {
+        $this->full_name = trim($full_name);
+        $this->email = trim($email);
+        $this->username = trim($username);
+        $this->password = trim($password);
+    }
 
-    if (empty($full_name) || empty($email) || empty($username) || empty($password)) {
-        $error = "Please fill out all fields.";
-    } else {
+    protected function validateInput(): bool {
+        return !empty($this->full_name) && !empty($this->email) && !empty($this->username) && !empty($this->password);
+    }
+}
 
-        // Check if username already exists
-        $check = $mysqli->prepare("SELECT user_id FROM users WHERE username = ? OR email = ?");
-        $check->bind_param("ss", $username, $email);
+/* ============================================================
+   CHILD CLASS: RegisterUser (Inheritance)
+   ============================================================ */
+class RegisterUser extends UserBase {
+
+    public function register(): string|null {
+        if (!$this->validateInput()) {
+            return "Please fill out all fields.";
+        }
+
+        $check = $this->mysqli->prepare("SELECT user_id FROM users WHERE username = ? OR email = ?");
+        if (!$check) return "Database error: " . $this->mysqli->error;
+
+        $check->bind_param("ss", $this->username, $this->email);
         $check->execute();
         $check->store_result();
 
         if ($check->num_rows > 0) {
-            $error = "Username or Email is already taken.";
-        } else {
-
-            $hashed = password_hash($password, PASSWORD_DEFAULT);
-
-            $stmt = $mysqli->prepare("
-                INSERT INTO users (full_name, email, username, password_hash)
-                VALUES (?, ?, ?, ?)
-            ");
-            $stmt->bind_param("ssss", $full_name, $email, $username, $hashed);
-
-            if ($stmt->execute()) {
-                header("Location: login.php?registered=1");
-                exit;
-            } else {
-                $error = "Registration failed. Try again.";
-            }
-
-            $stmt->close();
+            $check->close();
+            return "Username or Email is already taken.";
         }
-
         $check->close();
+
+        $hashed = password_hash($this->password, PASSWORD_DEFAULT);
+
+        $stmt = $this->mysqli->prepare("
+            INSERT INTO users (full_name, email, username, password_hash)
+            VALUES (?, ?, ?, ?)
+        ");
+        if (!$stmt) return "Database error: " . $this->mysqli->error;
+
+        $stmt->bind_param("ssss", $this->full_name, $this->email, $this->username, $hashed);
+
+        if ($stmt->execute()) {
+            $stmt->close();
+            header("Location: login.php?registered=1");
+            exit;
+        } else {
+            $stmt->close();
+            return "Registration failed. Try again.";
+        }
     }
 }
+
+/* ============================================================
+   EXECUTION
+   ============================================================ */
+$error = "";
+$register = new RegisterUser($mysqli);
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $register->setCredentials($_POST['full_name'], $_POST['email'], $_POST['username'], $_POST['password']);
+    $error = $register->register();
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Mindfulness App</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="CSS\register.css">
-    
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register - Mindfulness App</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="CSS/login.css">
 </head>
-
-<body class="bg-light">
+<body>
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-5">
@@ -71,7 +106,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     <?php endif; ?>
 
                     <form method="POST" action="">
-                        
                         <div class="mb-3">
                             <label class="form-label">Full Name</label>
                             <input type="text" name="full_name" class="form-control" required autocomplete="off">

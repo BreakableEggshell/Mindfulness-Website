@@ -1,53 +1,66 @@
 <?php
 session_start();
-if (isset($_SESSION['user_id'])) {
-    header("Location: src/dashboard.php");
-    exit;
+
+/* ============================================================
+   SESSION HANDLING
+============================================================ */
+class SessionManager {
+    public function redirectIfLoggedIn($redirectPage) {
+        if (isset($_SESSION['user_id'])) {
+            header("Location: $redirectPage");
+            exit;
+        }
+    }
 }
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Mindfulness Wellness App</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="index.css">
-    
-</head>
 
-<body>
+/* ============================================================
+   POLYMORPHIC PAGE COMPONENTS
+============================================================ */
 
-<!-- HEADER -->
-<div class="header">
-    <h4 class="m-0">Mindfulness</h4>
-    <div>
-        <a href="src/login.php" class="btn-login">Login</a>
-        <a href="src/register.php" class="ms-3">Register</a>
-    </div>
-</div>
+// Base Component (Parent Class)
+abstract class PageComponent {
+    abstract public function render();
+}
 
-<!-- MAIN LAYOUT -->
-<div class="container-fluid mt-5">
-    <div class="row align-items-center">
+// Header Component
+class HeaderComponent extends PageComponent {
+    public function render() {
+        return '
+        <div class="header">
+            <h4 class="m-0">Mindfulness</h4>
+            <div>
+                <a href="src/login.php" class="btn-login">Login</a>
+                <a href="src/register.php" class="ms-3">Register</a>
+            </div>
+        </div>';
+    }
+}
 
-        <!-- FIXED IMAGE PATH -->
-       
-
-        <!-- LEFT SIDE -->
-         
+// Hero Section Component
+class HeroComponent extends PageComponent {
+    public function render() {
+        return '
         <div class="col-md-6 hero-left">
             <div class="start">
                 <a href="src/register.php">
                     <img class="start_img" src="assets/Board.png" alt="assets/Board.png">
                 </a>
             </div>
+
             <div class="title_wrapper">
-                    <img class="logo" src="assets/logo_mindfulness.png" alt="mindfulness/assets/logo_mindfulness.png">
-                    <div class="flavour_text">
+                <img class="logo" src="assets/logo_mindfulness.png" alt="mindfulness/assets/logo_mindfulness.png">
+                <div class="flavour_text">
                     <h1 class="hero-title">Wellness starts with you</h1>
-                    </div>
-            </div>
-            <div class="col-md-5">
+                </div>
+            </div>';
+    }
+}
+
+// Preview Cards Component
+class PreviewCardsComponent extends PageComponent {
+    public function render() {
+        return '
+        <div class="col-md-5">
             <div class="preview-card">
                 <h5 class="fw-bold">What we are</h5>
                 <p class="text-muted">A customer first, service. That seeks to better the users day to day life.</p>
@@ -57,17 +70,60 @@ if (isset($_SESSION['user_id'])) {
                 <h5 class="fw-bold">What we offer</h5>
                 <p class="text-muted">Track your progress and build meaningful habits.</p>
                 <p class="text-muted">Small and non intensive exercises help keep your body</p>
-                <p class="text-muted">Tasks that help keep your hands busy to keep your mind off things. </p>
+                <p class="text-muted">Tasks that help keep your hands busy to keep your mind off things.</p>
             </div>
+        </div>';
+    }
+}
 
-        </div>
-            </div>
+/* ============================================================
+   PAGE CLASS USING POLYMORPHISM
+============================================================ */
 
-        <!-- RIGHT SIDE -->
-        
+class Page {
 
-    </div>
-</div>
+    private array $components = [];
 
-</body>
-</html>
+    public function addComponent(PageComponent $component) {
+        $this->components[] = $component;
+    }
+
+    public function render() {
+        echo '
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>Mindfulness Wellness App</title>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+            <link rel="stylesheet" href="index.css">
+        </head>
+        <body>';
+
+        // POLYMORPHISM: each component has its own "render()" version
+        foreach ($this->components as $component) {
+            echo $component->render();
+        }
+
+        echo '</body></html>';
+    }
+}
+
+/* ============================================================
+   EXECUTION
+============================================================ */
+
+// Redirect if logged in
+$session = new SessionManager();
+$session->redirectIfLoggedIn("src/dashboard.php");
+
+// Build page with components
+$page = new Page();
+$page->addComponent(new HeaderComponent());
+$page->addComponent(new HeroComponent());
+$page->addComponent(new PreviewCardsComponent());
+
+// Render
+$page->render();
+
+?>
